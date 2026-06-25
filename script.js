@@ -124,8 +124,10 @@ function buildReviewMail(member) {
     `申請目的：${member.purpose || '未填寫'}`,
     `申請時間：${new Date(member.createdAt).toLocaleString('zh-TW')}`,
     '',
-    '審查方式：請回到會員核准頁，確認資料後按「核准會員」。',
-    '會員核准頁：https://tylinian.github.io/SHANGBAO/member-approval.html'
+    '審查方式：請回到「會員核准頁」，確認資料後按「核准會員」。',
+    '',
+    '會員核准頁連結：',
+    'https://tylinian.github.io/SHANGBAO/member-approval.html'
   ].join('\n');
   return `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(reviewEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
