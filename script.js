@@ -3,6 +3,9 @@ const toggle = document.querySelector('.menu-toggle');
 const nav = document.querySelector('.main-nav');
 const dropdownToggle = document.querySelector('.nav-dropdown-toggle');
 const dropdown = document.querySelector('.nav-dropdown');
+const siteLoginForm = document.querySelector('#siteLoginForm');
+const siteLoginMessage = document.querySelector('#siteLoginMessage');
+const loginGate = document.querySelector('#loginGate');
 
 if (header) {
   window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 140), { passive: true });
@@ -68,6 +71,12 @@ const memberStatus = document.querySelector('#memberStatus');
 
 const getMembers = () => JSON.parse(localStorage.getItem('shangbaoMembers') || '[]');
 const saveMembers = members => localStorage.setItem('shangbaoMembers', JSON.stringify(members));
+const defaultMember = {
+  name: '商堡會員',
+  email: 'test@gmail.com',
+  password: '07111111',
+  purpose: '預設會員登入'
+};
 
 function setMessage(element, text, type = 'success') {
   if (!element) return;
@@ -85,7 +94,49 @@ function updateMemberStatus(member) {
   memberStatus.querySelector('.member-logout').addEventListener('click', () => {
     localStorage.removeItem('shangbaoCurrentMember');
     updateMemberStatus(null);
+    lockSite();
     setMessage(loginMessage, '已登出會員。');
+  });
+}
+
+function authenticateMember(email, password) {
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  const normalizedPassword = String(password || '');
+  const storedMember = getMembers().find(item => item.email === normalizedEmail && item.password === normalizedPassword);
+  if (storedMember) return storedMember;
+  if (normalizedEmail === defaultMember.email && normalizedPassword === defaultMember.password) return defaultMember;
+  return null;
+}
+
+function unlockSite(member) {
+  if (!document.body.classList.contains('member-locked')) return;
+  document.body.classList.remove('member-locked');
+  document.body.classList.add('member-unlocked');
+  if (loginGate) loginGate.setAttribute('hidden', '');
+  updateMemberStatus(member);
+}
+
+function lockSite() {
+  if (!loginGate) return;
+  document.body.classList.add('member-locked');
+  document.body.classList.remove('member-unlocked');
+  loginGate.removeAttribute('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+if (siteLoginForm) {
+  siteLoginForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const data = Object.fromEntries(new FormData(siteLoginForm).entries());
+    const member = authenticateMember(data.email, data.password);
+    if (!member) {
+      setMessage(siteLoginMessage, '登入失敗，請確認 Email 與密碼。', 'error');
+      return;
+    }
+    localStorage.setItem('shangbaoCurrentMember', JSON.stringify(member));
+    siteLoginForm.reset();
+    setMessage(siteLoginMessage, '登入成功。');
+    unlockSite(member);
   });
 }
 
@@ -122,7 +173,7 @@ if (loginForm) {
     const data = Object.fromEntries(new FormData(loginForm).entries());
     const email = String(data.email || '').trim().toLowerCase();
     const password = String(data.password || '');
-    const member = getMembers().find(item => item.email === email && item.password === password);
+    const member = authenticateMember(email, password);
     if (!member) {
       setMessage(loginMessage, '登入失敗，請確認 Email 與密碼，或先送出會員申請。', 'error');
       return;
@@ -135,3 +186,8 @@ if (loginForm) {
 }
 
 updateMemberStatus(JSON.parse(localStorage.getItem('shangbaoCurrentMember') || 'null'));
+
+const currentMember = JSON.parse(localStorage.getItem('shangbaoCurrentMember') || 'null');
+if (currentMember && siteLoginForm) {
+  unlockSite(currentMember);
+}
