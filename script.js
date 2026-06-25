@@ -247,8 +247,40 @@ if (currentMember && siteLoginForm) {
 
 const approvalList = document.querySelector('#approvalList');
 const approvalEmpty = document.querySelector('#approvalEmpty');
+const approvedList = document.querySelector('#approvedList');
+const approvedEmpty = document.querySelector('#approvedEmpty');
 const approvalExport = document.querySelector('#approvalExport');
 const approvalClear = document.querySelector('#approvalClear');
+
+function csvCell(value) {
+  const text = String(value ?? '');
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function membersToCsv(members) {
+  const headers = ['會員編號', '姓名', 'Email', '電話', '狀態', '申請目的', '申請時間', '核准時間', '審查Email'];
+  const rows = members.map(member => [
+    member.id || '',
+    member.name || '',
+    member.email || '',
+    member.phone || '',
+    member.status || 'approved',
+    member.purpose || '',
+    member.createdAt ? new Date(member.createdAt).toLocaleString('zh-TW') : '',
+    member.approvedAt ? new Date(member.approvedAt).toLocaleString('zh-TW') : '',
+    member.reviewerEmail || reviewEmail
+  ]);
+  return '\ufeff' + [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\n');
+}
+
+function downloadTextFile(filename, content, type = 'text/csv;charset=utf-8') {
+  const blob = new Blob([content], { type });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
 
 function renderApprovalList() {
   if (!approvalList) return;
@@ -277,6 +309,31 @@ function renderApprovalList() {
   });
 }
 
+function renderApprovedList() {
+  if (!approvedList) return;
+  const approvedMembers = getMembers();
+  approvedList.innerHTML = '';
+  if (approvedEmpty) approvedEmpty.hidden = approvedMembers.length > 0;
+  approvedMembers.forEach(member => {
+    const card = document.createElement('article');
+    card.className = 'approval-card approved-card';
+    card.innerHTML = `
+      <div>
+        <span class="panel-kicker">${member.id || 'APPROVED'}</span>
+        <h3>${member.name}</h3>
+        <p>Email：${member.email}</p>
+        <p>電話：${member.phone || '未填寫'}</p>
+        <p>申請目的：${member.purpose || '未填寫'}</p>
+        <small>核准時間：${member.approvedAt ? new Date(member.approvedAt).toLocaleString('zh-TW') : '預設會員'}</small>
+      </div>
+      <div class="approval-actions">
+        <button class="btn btn-outline" type="button" data-remove-approved="${member.email}">移除會員</button>
+      </div>
+    `;
+    approvedList.appendChild(card);
+  });
+}
+
 if (approvalList) {
   approvalList.addEventListener('click', event => {
     const approveId = event.target.closest('[data-approve]')?.dataset.approve;
@@ -299,23 +356,27 @@ if (approvalList) {
       window.open(buildApprovalNoticeMail(approvedMember), '_blank', 'noopener,noreferrer');
     }
     renderApprovalList();
+    renderApprovedList();
   });
   renderApprovalList();
+  renderApprovedList();
+}
+
+if (approvedList) {
+  approvedList.addEventListener('click', event => {
+    const email = event.target.closest('[data-remove-approved]')?.dataset.removeApproved;
+    if (!email) return;
+    if (!confirm(`確定要移除已核准會員 ${email}？移除後該帳號將無法登入。`)) return;
+    saveMembers(getMembers().filter(member => member.email !== email));
+    const currentMember = JSON.parse(localStorage.getItem('shangbaoCurrentMember') || 'null');
+    if (currentMember?.email === email) localStorage.removeItem('shangbaoCurrentMember');
+    renderApprovedList();
+  });
 }
 
 if (approvalExport) {
   approvalExport.addEventListener('click', () => {
-    const data = {
-      approvedMembers: getMembers(),
-      pendingMembers: getPendingMembers(),
-      exportedAt: new Date().toISOString()
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `shangbao-members-${new Date().toISOString().slice(0, 10)}.json`;
-    link.click();
-    URL.revokeObjectURL(link.href);
+    downloadTextFile(`shangbao-approved-members-${new Date().toISOString().slice(0, 10)}.csv`, membersToCsv(getMembers()));
   });
 }
 
