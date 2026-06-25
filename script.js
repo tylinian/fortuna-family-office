@@ -249,39 +249,7 @@ const approvalList = document.querySelector('#approvalList');
 const approvalEmpty = document.querySelector('#approvalEmpty');
 const approvedList = document.querySelector('#approvedList');
 const approvedEmpty = document.querySelector('#approvedEmpty');
-const approvalExport = document.querySelector('#approvalExport');
-const approvalSaveLocal = document.querySelector('#approvalSaveLocal');
 const approvalClear = document.querySelector('#approvalClear');
-
-function csvCell(value) {
-  const text = String(value ?? '');
-  return `"${text.replace(/"/g, '""')}"`;
-}
-
-function membersToCsv(members) {
-  const headers = ['會員編號', '姓名', 'Email', '電話', '狀態', '申請目的', '申請時間', '核准時間', '審查Email'];
-  const rows = members.map(member => [
-    member.id || '',
-    member.name || '',
-    member.email || '',
-    member.phone || '',
-    member.status || 'approved',
-    member.purpose || '',
-    member.createdAt ? new Date(member.createdAt).toLocaleString('zh-TW') : '',
-    member.approvedAt ? new Date(member.approvedAt).toLocaleString('zh-TW') : '',
-    member.reviewerEmail || reviewEmail
-  ]);
-  return '\ufeff' + [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\n');
-}
-
-function downloadTextFile(filename, content, type = 'text/csv;charset=utf-8') {
-  const blob = new Blob([content], { type });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(link.href);
-}
 
 function renderApprovalList() {
   if (!approvalList) return;
@@ -322,13 +290,6 @@ function renderApprovedList() {
       <div>
         <span class="panel-kicker">${member.id || 'APPROVED'}</span>
         <h3>${member.name}</h3>
-        <p>Email：${member.email}</p>
-        <p>電話：${member.phone || '未填寫'}</p>
-        <p>申請目的：${member.purpose || '未填寫'}</p>
-        <small>核准時間：${member.approvedAt ? new Date(member.approvedAt).toLocaleString('zh-TW') : '預設會員'}</small>
-      </div>
-      <div class="approval-actions">
-        <button class="btn btn-outline" type="button" data-remove-approved="${member.email}">移除會員</button>
       </div>
     `;
     approvedList.appendChild(card);
@@ -361,48 +322,6 @@ if (approvalList) {
   });
   renderApprovalList();
   renderApprovedList();
-}
-
-if (approvedList) {
-  approvedList.addEventListener('click', event => {
-    const email = event.target.closest('[data-remove-approved]')?.dataset.removeApproved;
-    if (!email) return;
-    if (!confirm(`確定要移除已核准會員 ${email}？移除後該帳號將無法登入。`)) return;
-    saveMembers(getMembers().filter(member => member.email !== email));
-    const currentMember = JSON.parse(localStorage.getItem('shangbaoCurrentMember') || 'null');
-    if (currentMember?.email === email) localStorage.removeItem('shangbaoCurrentMember');
-    renderApprovedList();
-  });
-}
-
-if (approvalExport) {
-  approvalExport.addEventListener('click', () => {
-    downloadTextFile(`shangbao-approved-members-${new Date().toISOString().slice(0, 10)}.csv`, membersToCsv(getMembers()));
-  });
-}
-
-if (approvalSaveLocal) {
-  approvalSaveLocal.addEventListener('click', async () => {
-    const filename = `shangbao-approved-members-${new Date().toISOString().slice(0, 10)}.csv`;
-    const csv = membersToCsv(getMembers());
-    if (!window.showDirectoryPicker) {
-      alert('此瀏覽器不支援直接寫入本機資料夾，將改用下載 CSV。請下載後放入 C:\\AI 開發\\網頁設計\\會員資料。');
-      downloadTextFile(filename, csv);
-      return;
-    }
-    try {
-      const directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-      const fileHandle = await directoryHandle.getFileHandle(filename, { create: true });
-      const writable = await fileHandle.createWritable();
-      await writable.write(csv);
-      await writable.close();
-      alert(`已儲存 ${filename}。請確認檔案位於 C:\\AI 開發\\網頁設計\\會員資料。`);
-    } catch (error) {
-      if (error?.name === 'AbortError') return;
-      alert('儲存失敗，將改用下載 CSV。請下載後放入 C:\\AI 開發\\網頁設計\\會員資料。');
-      downloadTextFile(filename, csv);
-    }
-  });
 }
 
 if (approvalClear) {
