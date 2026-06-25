@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="商堡家辦會員申請表。">
+  <title>申請會員｜商堡家辦</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=Noto+Serif+TC:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=20260625-3">
+</head>
+<body class="article-page member-apply-page">
+  <header class="article-header">
+    <a class="brand" href="index.html" aria-label="返回商堡家辦首頁">
+      <span class="brand-mark" aria-hidden="true"><img class="brand-logo" src="商堡_LOGO-06.jpg" alt=""></span>
+      <span><strong>商堡家辦</strong><small>SHANGBAO</small></span>
+    </a>
+    <a class="article-back" href="index.html#member">← 返回會員登入</a>
+  </header>
+
+  <main>
+    <section class="apply-hero">
+      <div>
+        <p class="eyebrow light">MEMBER APPLICATION</p>
+        <h1>申請商堡會員</h1>
+        <p>留下基本聯絡資料與需求方向，建立後續長期對話入口。</p>
+      </div>
+    </section>
+
+    <section class="member section member-apply-section">
+      <div class="member-head reveal">
+        <div>
+          <p class="eyebrow">APPLICATION</p>
+          <h2>專屬會員申請，<br><em>從一次清楚的填寫開始。</em></h2>
+        </div>
+        <p>此版本適用於 GitHub Pages 靜態網站，會員資料會暫存在使用者瀏覽器中；若要跨裝置與後台審核，後續可串接 Google 表單或資料庫。</p>
+      </div>
+
+      <div class="member-grid member-grid-single">
+        <form class="member-panel reveal" id="memberApplyForm">
+          <span class="panel-kicker">APPLICATION</span>
+          <h3>會員申請</h3>
+          <label>姓名<input type="text" name="name" autocomplete="name" required></label>
+          <label>Email<input type="email" name="email" autocomplete="email" required></label>
+          <label>聯絡電話<input type="tel" name="phone" autocomplete="tel"></label>
+          <label>設定密碼<input type="password" name="password" autocomplete="new-password" minlength="6" required></label>
+          <label>申請目的<textarea name="purpose" rows="4" placeholder="例如：家族治理、資產配置、傳承諮詢"></textarea></label>
+          <button class="btn btn-gold" type="submit">送出申請 <span>→</span></button>
+          <p class="form-message" id="applyMessage" role="status"></p>
+          <a class="member-apply-link" href="index.html#member">已有會員？返回登入 <span>↗</span></a>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-brand"><a class="brand" href="index.html"><span class="brand-mark"><img class="brand-logo" src="商堡_LOGO-06.jpg" alt=""></span><span><strong>商堡家辦</strong><small>SHANGBAO</small></span></a><p>守護家族價值，成就世代影響力。</p></div>
+    <div><strong>快速連結</strong><a href="index.html#about">關於商堡</a><a href="index.html#services">專業服務</a><a href="index.html#insights">觀點洞察</a></div>
+    <div><strong>聯絡我們</strong><a href="mailto:test@gmail.com">test@gmail.com</a><a href="tel:+07111111">+07111111</a><span>高雄市測試路1號</span></div>
+    <div class="footer-bottom"><span>© 2026 商堡家族辦公室</span><span class="visit-counter">瀏覽人次 <strong id="visitCount">000001</strong></span><span>隱私權政策　法律聲明</span></div>
+  </footer>
+  <script src="script.js?v=20260625-3"></script>
+</body>
+</html>
